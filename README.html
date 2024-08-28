@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="icon" href="image/README/logo.png" type="image/png">
+    <title>CumFormer: 基于逐步域间差距解耦的雾天场景语义分割</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9ff;
+            color: #333;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .container {
+            width: 80%;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        img {
+            width: 90%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+            font-weight: bold;
+        }
+
+        video {
+            width: 90%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 5px;
+        }
+
+        h1,
+        h2 {
+            color: #0056b3;
+            font-weight: 300;
+        }
+
+        p,
+        li {
+            line-height: 1.6;
+            text-align: justify;
+            margin-bottom: 16px;
+        }
+
+        .math-formula {
+            font-family: 'Courier New', monospace;
+            font-style: normal;
+            background-color: #eeeeee;
+            padding: 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        blockquote {
+            border-left: 4px solid #2a7fff;
+            margin: 1.5em 10px;
+            padding: 0.5em 20px;
+            color: #555;
+            background-color: #eeeeee;
+            border-radius: 5px;
+        }
+
+        .github-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .github-link img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .github-link a {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>CumFormer: 基于逐步域间差距解耦的雾天场景语义分割</h1>
+        <blockquote>
+            <p>CumFormer提出了一种创新的域适应方法，通过逐步解耦域间差距来实现雾天场景的精确语义分割。该方法引入中间域，将源域到目标域的适应过程分解为两个阶段，分别处理风格差异和雾气退化问题，显著提高了模型在复杂天气条件下的分割性能。
+            </p>
+        </blockquote>
+        <h2>技术背景与挑战</h2>
+        <p>在自动驾驶和视觉导航领域，准确的语义雾景分割（SFSS）对于系统的安全性至关重要。然而，雾气导致的图像模糊和高标注成本，使得在雾天条件下进行语义分割成为一个重大挑战：</p>
+        <ul>
+            <li><strong>图像模糊与标注难度：</strong>雾气引起的模糊增加了识别关键目标的难度，并提高了语义模糊和混淆的风险。</li>
+            <li><strong>高标注成本：</strong>在恶劣天气下，逐像素分割标注比清晰场景更费时费力，导致使用传统全监督方法的成本较高。</li>
+            <li><strong>大域间差距：</strong>不同城市风格和雾天视觉退化使得源域（清晰场景）和目标域（雾天场景）之间存在显著的差距，阻碍了领域自适应的有效性。</li>
+        </ul>
+        <p>为了克服这些挑战，CumFormer通过逐步解耦域间差距，显著提高了雾天场景的语义分割性能。</p>
+        <img src="image/README/1.png" alt="主要思想：通过引入中间域逐步减少域间差距，提高模型的适应性。" width="40%">
+
+        <h2>结构概览</h2>
+        <ul>
+            <li><strong>configs:</strong> 包含各种域适应配置文件，涵盖数据增强和迁移学习策略。</li>
+            <li><strong>demo:</strong> 提供实际应用示例，演示域适应图像分割的实现。</li>
+            <li><strong>learn:</strong> 包含学习和实验相关的脚本。</li>
+            <li><strong>mmseg:</strong> 框架的核心模块，涵盖 API、数据集处理、模型定义等。</li>
+            <li><strong>pretrained:</strong> 存放预训练模型和提示信息。</li>
+            <li><strong>tools:</strong> 包括数据集转换、度量学习、测试时增强 (TTA) 等实用工具。</li>
+        </ul>
+
+        <h2>核心功能</h2>
+        <p><strong>域适应图像分割:</strong> 解决不同域间的图像分割问题，采用无监督、半监督和自监督学习策略。</p>
+        <p><strong>强大的数据处理:</strong> 支持广泛的数据处理和增强技术，提升模型在新域的表现。</p>
+
+        <h2>安装说明</h2>
+        <ol>
+            <li>克隆本仓库到本地。</li>
+            <li>修改 <code>configs</code> 目录下的配置文件，以符合具体的应用需求。</li>
+            <li>运行 <code>demo</code> 目录下的示例脚本，观察不同域适应策略的效果。</li>
+        </ol>
+
+        <h2>方法介绍</h2>
+        <p>CumFormer通过分阶段的域适应过程，将跨域任务分解为两个关键阶段：</p>
+        <ol>
+            <li><strong>风格适应:</strong> 从清晰场景（源域）到不同风格但清晰的场景（中间域）的适应，主要解决不同城市风格间的差异问题。</li>
+            <li><strong>雾气适应:</strong> 从中间域（清晰场景）到目标域（雾天场景）的适应，处理因雾气导致的视觉退化问题。</li>
+        </ol>
+        <img src="image/README/4.png" alt="方法总览：展示CumFormer的分阶段域适应过程，逐步减少风格和雾气差异。">
+
+        <h2>技术细节</h2>
+        <h3>标签参考值（Label Reference Value）</h3>
+        <p>标签参考值用于量化自训练过程中源域标签对目标域伪标签的指导作用。标签参考值的高低决定了自训练的有效性：</p>
+        <p class="math-formula">
+            $$q^d_C = \frac{\sum_{j=1}^{H \times W} \left[ \max_{c'} T(X^d_C)^{(j, c')} \geq \tau \right]}{H \times W}$$
+        </p>
+        <p>通过计算目标域伪标签的置信度，可以有效评估自训练的进展和效果。</p>
+
+        <h3>分阶段自训练策略</h3>
+        <p>CumFormer的核心是分阶段自训练策略：</p>
+        <ul>
+            <li><strong>第一阶段:</strong> 处理源域与中间域的风格差距。使用基础分割网络（如SegFormer）进行训练，在较小的域间差距下提高标签参考值。</li>
+            <li><strong>第二阶段:</strong> 处理中间域与目标域之间的雾气差距。使用合成雾图像逐步引入真实雾天图像，自训练策略进一步增强模型的目标域性能。</li>
+        </ul>
+        <p>混合损失的计算如下：</p>
+        <p class="math-formula">
+            $$L = (1-M) \odot L^d_C + M \odot L^i_S$$
+        </p>
+        <p>通过平衡源域和目标域损失，逐步提升模型在不同域间的适应能力。</p>
+
+        <h2>实验结果与分析</h2>
+        <p>我们在ACDC和Foggy Zurich-test (FZ) 数据集上验证了CumFormer的有效性。实验结果显示，CumFormer在这两个数据集上均显著优于现有方法。</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Experiment</th>
+                    <th>Method</th>
+                    <th>Backbone</th>
+                    <th>ACDC</th>
+                    <th>FZ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Backbone</td>
+                    <td>-</td>
+                    <td>DeepLabv2</td>
+                    <td>33.5</td>
+                    <td>25.9</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>-</td>
+                    <td>RefineNet</td>
+                    <td>46.4</td>
+                    <td>34.6</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>-</td>
+                    <td>SegFormer</td>
+                    <td>47.3</td>
+                    <td>37.7</td>
+                </tr>
+                <tr>
+                    <td>Dehazing</td>
+                    <td>DCPDN</td>
+                    <td>DeepLabv2</td>
+                    <td>33.4</td>
+                    <td>28.7</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>MSCNN</td>
+                    <td>RefineNet</td>
+                    <td>38.5</td>
+                    <td>34.4</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>DCP</td>
+                    <td>RefineNet</td>
+                    <td>34.7</td>
+                    <td>31.2</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Non-local</td>
+                    <td>RefineNet</td>
+                    <td>31.9</td>
+                    <td>27.6</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>TransWeather</td>
+                    <td>SegFormer</td>
+                    <td>39.4</td>
+                    <td>37.3</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>GFN</td>
+                    <td>RefineNet</td>
+                    <td>33.6</td>
+                    <td>28.7</td>
+                </tr>
+                <tr>
+                    <td>Synthetic</td>
+                    <td>SFSU</td>
+                    <td>RefineNet</td>
+                    <td>45.6</td>
+                    <td>35.7</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>CMAda</td>
+                    <td>RefineNet</td>
+                    <td>51.1</td>
+                    <td>46.8</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>FIFO</td>
+                    <td>RefineNet</td>
+                    <td>54.1</td>
+                    <td>48.4</td>
+                </tr>
+                <tr>
+                    <td>DA-based</td>
+                    <td>LSGAN</td>
+                    <td>DeepLabv2</td>
+                    <td>29.3</td>
+                    <td>24.4</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>Multi-task</td>
+                    <td>DeepLabv2</td>
+                    <td>35.4</td>
+                    <td>28.2</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>AdaptSegNet</td>
+                    <td>DeepLabv2</td>
+                    <td>31.8</td>
+                    <td>26.1</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>ADVENT</td>
+                    <td>DeepLabv2</td>
+                    <td>32.9</td>
+                    <td>24.5</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>CLAN</td>
+                    <td>DeepLabv2</td>
+                    <td>38.9</td>
+                    <td>28.3</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>BDL</td>
+                    <td>DeepLabv2</td>
+                    <td>37.7</td>
+                    <td>30.2</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>FDA</td>
+                    <td>DeepLabv2</td>
+                    <td>39.5</td>
+                    <td>22.2</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>DISE</td>
+                    <td>DeepLabv2</td>
+                    <td>42.3</td>
+                    <td>40.7</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>ProDA</td>
+                    <td>DeepLabv2</td>
+                    <td>38.4</td>
+                    <td>37.8</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>DACS</td>
+                    <td>DeepLabv2</td>
+                    <td>41.3</td>
+                    <td>28.7</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>DAFormer</td>
+                    <td>SegFormer</td>
+                    <td>48.9</td>
+                    <td>44.4</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>CuDA-Net</td>
+                    <td>DeepLabv2</td>
+                    <td>55.6</td>
+                    <td>49.1</td>
+                </tr>
+                <tr>
+                    <td><strong>Ours</strong></td>
+                    <td><strong>CumFormer</strong></td>
+                    <td><strong>SegFormer</strong></td>
+                    <td><strong>60.7</strong></td>
+                    <td><strong>54.8</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>标签参考值与域间差距的变化关系图，展示了不同域间差距下标签参考值的趋势。随着域间差距的减小，标签参考值显著提高，增强了自训练效果。</p>
+        <img src="image/README/5.png" alt="标签参考值与域间差距的变化关系：展示了标签参考值在不同域间差距下的变化情况。">
+
+        <h2>贡献与总结</h2>
+        <ul>
+            <li><strong>逐步域间差距解耦策略:</strong> 通过引入中间域，我们将跨域问题分解为多个可控的小任务，显著提高了语义分割性能。</li>
+            <li><strong>优化自训练机制:</strong> 通过引入标签参考值，我们的自训练策略更加鲁棒，在多个基准测试中均取得了领先的性能。</li>
+            <li><strong>强泛化性:</strong> CumFormer在多种恶劣天气条件下均表现良好，具有广泛的应用前景。</li>
+        </ul>
+        <p>CumFormer通过这些创新为未来研究提供了一种新的解决思路，有望在更多视觉任务中得到应用和扩展。</p>
+    </div>
+</body>
+
+</html>
